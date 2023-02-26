@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "benchmark"
+version = "0.1.0"
+description = ""
+authors = ["Jordan Begg"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pydantic = "^1.10.2"
+fastapi = "^0.92.0"
+uvicorn = "^0.20.0"
+alembic = "^1.9.4"
+python-dotenv = "^0.21.1"
+sqlmodel = "^0.0.8"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^22.10.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
