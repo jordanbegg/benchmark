@@ -41,7 +41,9 @@ def read_musclegroups(
     "/{musclegroup_id}",
     response_model=MuscleGroupReadWithExercises,
 )
-def read_musclegroup(*, session: Session = Depends(get_session), musclegroup_id: int):
+def read_musclegroup(
+    *, session: Session = Depends(get_session), musclegroup_id: int
+):
     if musclegroup := session.get(MuscleGroup, musclegroup_id):
         return musclegroup
     else:
@@ -68,7 +70,9 @@ def update_musclegroup(
 
 
 @router.delete("/{musclegroup_id}")
-def delete_musclegroup(*, session: Session = Depends(get_session), musclegroup_id: int):
+def delete_musclegroup(
+    *, session: Session = Depends(get_session), musclegroup_id: int
+):
     musclegroup = session.get(MuscleGroup, musclegroup_id)
     if not musclegroup:
         raise HTTPException(status_code=404, detail="Exercise not found")

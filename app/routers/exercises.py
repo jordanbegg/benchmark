@@ -44,7 +44,9 @@ def read_exercises(
 
 
 @router.get("/{exercise_id}", response_model=ExerciseReadWithMuscleGroups)
-def read_exercise(*, session: Session = Depends(get_session), exercise_id: int):
+def read_exercise(
+    *, session: Session = Depends(get_session), exercise_id: int
+):
     if exercise := session.get(Exercise, exercise_id):
         return exercise
     else:
@@ -79,7 +81,9 @@ def update_exercise(
 
 
 @router.delete("/{exercise_id}")
-def delete_exercise(*, session: Session = Depends(get_session), exercise_id: int):
+def delete_exercise(
+    *, session: Session = Depends(get_session), exercise_id: int
+):
     exercise = session.get(Exercise, exercise_id)
     if not exercise:
         raise HTTPException(status_code=404, detail="Exercise not found")
