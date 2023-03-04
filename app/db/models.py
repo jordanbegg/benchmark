@@ -46,7 +46,7 @@ class MuscleGroupUpdate(SQLModel):
 
 
 class ExerciseBase(SQLModel):
-    name: str = Field(index=True, unique=True)
+    name: str | None = Field(default=None, index=True, unique=True)
 
 
 class ExerciseCreate(ExerciseBase):
@@ -103,6 +103,7 @@ class SetCreate(SetBase):
 
 
 class ExerciseCreateWithSets(ExerciseBase):
+    id: int
     sets: list[SetCreate] = []
 
 
@@ -115,7 +116,13 @@ class ExerciseReadWithSets(ExerciseRead):
 
 
 class WorkoutRoutineRead(WorkoutRoutineBase):
+    id: int
     exercises: list[ExerciseReadWithSets] = []
+
+
+class WorkoutRoutineUpdate(WorkoutRoutineBase):
+    name: str | None = None
+    exercises: list[ExerciseCreateWithSets] = []
 
 
 class Exercise(ExerciseBase, table=True):

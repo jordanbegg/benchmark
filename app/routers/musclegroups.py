@@ -75,7 +75,7 @@ def delete_musclegroup(
 ):
     musclegroup = session.get(MuscleGroup, musclegroup_id)
     if not musclegroup:
-        raise HTTPException(status_code=404, detail="Exercise not found")
+        raise HTTPException(status_code=404, detail="Muscle Group not found")
     session.delete(musclegroup)
     session.commit()
     return {"ok": True}
