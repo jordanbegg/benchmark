@@ -2,12 +2,13 @@ from fastapi import FastAPI
 from sqlmodel import SQLModel
 
 from app.db.database import engine
-from app.routers import exercises, musclegroups
+from app.routers import exercises, musclegroups, workout_routines
 
 app = FastAPI()
 
 app.include_router(exercises.router)
 app.include_router(musclegroups.router)
+app.include_router(workout_routines.router)
 
 
 @app.on_event("startup")
