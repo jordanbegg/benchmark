@@ -9,7 +9,7 @@ repos:
   rev: 23.1.0
   hooks:
   - id: black
-  exclude: ^alembic/
+    exclude: ^alembic/
 - repo: https://github.com/pycqa/flake8.git
   rev: 3.9.2
   hooks:
