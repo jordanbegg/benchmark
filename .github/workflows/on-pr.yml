@@ -5,11 +5,11 @@ on:
     branches: [ "dev" ]
 
 permissions:
-  contents: 
+  contents:
     read
 
 env:
-  SQLALCHEMY_DATABASE_URL: sqlite:///./sql_app.db
+  SQLALCHEMY_DATABASE_URL: sqlite:///
 
 jobs:
   build:
