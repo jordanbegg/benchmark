@@ -125,6 +125,10 @@ class WorkoutRoutineUpdate(WorkoutRoutineBase):
     exercises: list[ExerciseCreateWithSets] = []
 
 
+class WorkoutCreate(WorkoutBase):
+    sets: list[SetCreate] = []
+
+
 class Exercise(ExerciseBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
