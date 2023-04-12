@@ -159,7 +159,8 @@ class WorkoutRoutineRead(WorkoutRoutineBase):
 
 class WorkoutRoutinesRead(WorkoutRoutineBase):
     id: int
-    exercises: list[ExerciseRead] = []
+    exercises: list[ExerciseReadWithPlannedSets] = []
+    workouts: list["WorkoutsReadWithoutSets"]
 
 
 class WorkoutRoutineUpdate(WorkoutRoutineBase):
@@ -168,17 +169,29 @@ class WorkoutRoutineUpdate(WorkoutRoutineBase):
 
 
 class WorkoutCreate(WorkoutBase):
-    sets: list[SetCreate] = []
+    exercises: list[ExerciseCreateWithSets] = []
+    workoutroutine_id: int | None = None
 
 
-class WorkoutRead(WorkoutRoutineBase):
+class WorkoutRead(WorkoutBase):
     id: int
     exercises: list[ExerciseReadWithSets] = []
+    workoutroutine_id: int | None = None
 
 
-class WorkoutUpdate(WorkoutRoutineBase):
-    name: str | None = None
+class WorkoutsRead(WorkoutBase):
+    id: int
+    exercises: list[ExerciseRead] = []
+    workoutroutine_id: int | None = None
+
+
+class WorkoutsReadWithoutSets(WorkoutBase):
+    id: int
+
+
+class WorkoutUpdate(WorkoutBase):
     exercises: list[ExerciseCreateWithSets] = []
+    workoutroutine_id: int | None = None
 
 
 class Exercise(ExerciseBase, table=True):
