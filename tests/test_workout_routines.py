@@ -33,7 +33,7 @@ def test_create_workout_routine(client: TestClient):
     exericse_id = data["id"]
     payload = {
         "name": "Test Routine",
-        "exercises": [{"id": exericse_id, "sets": [{"reps": 4}]}],
+        "exercises": [{"id": exericse_id, "planned_sets": [{"reps": 4}]}],
     }
     response = client.post(
         "/workout_routines/",
@@ -44,7 +44,7 @@ def test_create_workout_routine(client: TestClient):
     assert data["name"] == "Test Routine"
     assert data["id"] is not None
     assert data["exercises"][0]["id"] == exericse_id
-    assert data["exercises"][0]["sets"][0]["reps"] == 4
+    assert data["exercises"][0]["planned_sets"][0]["reps"] == 4
 
 
 def test_read_workout_routine(client: TestClient):
@@ -63,7 +63,7 @@ def test_read_workout_routine(client: TestClient):
     exericse_id = data["id"]
     payload = {
         "name": "Test Routine",
-        "exercises": [{"id": exericse_id, "sets": [{"reps": 4}]}],
+        "exercises": [{"id": exericse_id, "planned_sets": [{"reps": 4}]}],
     }
     response = client.post(
         "/workout_routines/",
@@ -74,7 +74,7 @@ def test_read_workout_routine(client: TestClient):
     assert data["name"] == "Test Routine"
     assert data["id"] is not None
     assert data["exercises"][0]["id"] == exericse_id
-    assert data["exercises"][0]["sets"][0]["reps"] == 4
+    assert data["exercises"][0]["planned_sets"][0]["reps"] == 4
 
     # Read the workout routine
     created_id = data["id"]
@@ -84,7 +84,7 @@ def test_read_workout_routine(client: TestClient):
     assert data["name"] == "Test Routine"
     assert data["id"] == created_id
     assert data["exercises"][0]["id"] == exericse_id
-    assert data["exercises"][0]["sets"][0]["reps"] == 4
+    assert data["exercises"][0]["planned_sets"][0]["reps"] == 4
 
 
 def test_read_workout_routines(client: TestClient):
@@ -125,7 +125,7 @@ def test_delete_workout_routine(client: TestClient):
     exericse_id = data["id"]
     payload = {
         "name": "Test Routine",
-        "exercises": [{"id": exericse_id, "sets": [{"reps": 4}]}],
+        "exercises": [{"id": exericse_id, "planned_sets": [{"reps": 4}]}],
     }
     response = client.post(
         "/workout_routines/",
@@ -136,14 +136,14 @@ def test_delete_workout_routine(client: TestClient):
     assert data["name"] == "Test Routine"
     assert data["id"] is not None
     assert data["exercises"][0]["id"] == exericse_id
-    assert data["exercises"][0]["sets"][0]["reps"] == 4
+    assert data["exercises"][0]["planned_sets"][0]["reps"] == 4
 
     created_id = data["id"]
     response = client.delete(f"/workout_routines/{created_id}")
     data = response.json()
     assert response.status_code == 200
 
-    # TODO Check the sets were deleted
+    # TODO Check the planned_sets were deleted
 
     # Check the routine was deleted
     response = client.get(f"/workout_routine/{created_id}")
@@ -168,7 +168,7 @@ def test_update_workout_routine(client: TestClient):
     # Create the workout routine
     payload = {
         "name": "Test Routine",
-        "exercises": [{"id": exercise_id, "sets": [{"reps": 1}]}],
+        "exercises": [{"id": exercise_id, "planned_sets": [{"reps": 1}]}],
     }
     response = client.post(
         "/workout_routines/",
@@ -179,13 +179,13 @@ def test_update_workout_routine(client: TestClient):
     assert data["name"] == "Test Routine"
     assert data["id"] is not None
     assert data["exercises"][0]["name"] == "Bench Press"
-    assert data["exercises"][0]["sets"][0]["reps"] == 1
+    assert data["exercises"][0]["planned_sets"][0]["reps"] == 1
 
     workout_routine_id = data["id"]
 
     payload = {
         "name": "Test Routine 1",
-        "exercises": [{"id": exercise_id, "sets": [{"reps": 2}]}],
+        "exercises": [{"id": exercise_id, "planned_sets": [{"reps": 2}]}],
     }
     response = client.patch(
         f"/workout_routines/{workout_routine_id}",
@@ -196,6 +196,5 @@ def test_update_workout_routine(client: TestClient):
     assert data["name"] == "Test Routine 1"
     assert data["id"] == workout_routine_id
     assert data["exercises"][0]["name"] == "Bench Press"
-    assert data["exercises"][0]["sets"][0]["reps"] == 2
-
-    # TODO check existings sets were deleted
+    assert data["exercises"][0]["planned_sets"][0]["reps"] == 2
+    assert len(data["exercises"][0]["planned_sets"]) == 1

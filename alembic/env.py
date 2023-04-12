@@ -9,7 +9,14 @@ from dotenv import load_dotenv
 
 from alembic import context
 
-from app.db.models import Exercise, Set, Workout, WorkoutRoutine, MuscleGroup
+from app.db.models import (
+    Exercise,
+    Set,
+    Workout,
+    WorkoutRoutine,
+    MuscleGroup,
+    PlannedSet,
+)
 
 load_dotenv()
 
