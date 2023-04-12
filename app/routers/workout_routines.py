@@ -145,4 +145,7 @@ def update_workout_routine(
     session.add(workout_routine_db)
     session.commit()
     session.refresh(workout_routine_db)
+
+    # Filter for the sake of the response model but don't update db
+    workout_routine_db = filter_sets(workout_routine_db)
     return workout_routine_db
