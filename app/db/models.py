@@ -21,6 +21,15 @@ class ExerciseWorkoutRoutineLink(SQLModel, table=True):
     )
 
 
+class ExerciseWorkoutLink(SQLModel, table=True):
+    exercise_id: int | None = Field(
+        default=None, foreign_key="exercise.id", primary_key=True
+    )
+    workout_id: int | None = Field(
+        default=None, foreign_key="workout.id", primary_key=True
+    )
+
+
 class MuscleGroupBase(SQLModel):
     name: str = Field(index=True, unique=True)
 
@@ -87,19 +96,43 @@ class Set(SetBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     exercise_id: int = Field(foreign_key="exercise.id")
     exercise: "Exercise" = Relationship(back_populates="sets")
-    is_actual: bool
     workout_id: int | None = Field(default=None, foreign_key="workout.id")
     workout: "Workout" = Relationship(back_populates="sets")
 
 
+class PlannedSet(SetBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    exercise_id: int = Field(foreign_key="exercise.id")
+    exercise: "Exercise" = Relationship(back_populates="planned_sets")
+    workoutroutine_id: int | None = Field(
+        default=None, foreign_key="workoutroutine.id"
+    )
+    workoutroutine: "WorkoutRoutine" = Relationship(
+        back_populates="planned_sets"
+    )
+
+
 class SetRead(SetBase):
-    pass
+    exercise_id: int | None = None
+
+
+class PlannedSetRead(SetBase):
+    exercise_id: int | None = None
+
+
+class PlannedSetCreate(SetBase):
+    exercise_id: int | None = None
+    workout_routine_id: int | None = None
 
 
 class SetCreate(SetBase):
     exercise_id: int | None = None
-    is_actual: bool = True
     workout_id: int | None = None
+
+
+class ExerciseCreateWithPlannedSets(ExerciseBase):
+    id: int
+    planned_sets: list[PlannedSetCreate] = []
 
 
 class ExerciseCreateWithSets(ExerciseBase):
@@ -108,25 +141,44 @@ class ExerciseCreateWithSets(ExerciseBase):
 
 
 class WorkoutRoutineCreate(WorkoutRoutineBase):
-    exercises: list[ExerciseCreateWithSets] = []
+    exercises: list[ExerciseCreateWithPlannedSets] = []
 
 
 class ExerciseReadWithSets(ExerciseRead):
     sets: list[SetRead] = []
 
 
+class ExerciseReadWithPlannedSets(ExerciseRead):
+    planned_sets: list[SetRead] = []
+
+
 class WorkoutRoutineRead(WorkoutRoutineBase):
     id: int
-    exercises: list[ExerciseReadWithSets] = []
+    exercises: list[ExerciseReadWithPlannedSets] = []
+
+
+class WorkoutRoutinesRead(WorkoutRoutineBase):
+    id: int
+    exercises: list[ExerciseRead] = []
 
 
 class WorkoutRoutineUpdate(WorkoutRoutineBase):
     name: str | None = None
-    exercises: list[ExerciseCreateWithSets] = []
+    exercises: list[ExerciseCreateWithPlannedSets] = []
 
 
 class WorkoutCreate(WorkoutBase):
     sets: list[SetCreate] = []
+
+
+class WorkoutRead(WorkoutRoutineBase):
+    id: int
+    exercises: list[ExerciseReadWithSets] = []
+
+
+class WorkoutUpdate(WorkoutRoutineBase):
+    name: str | None = None
+    exercises: list[ExerciseCreateWithSets] = []
 
 
 class Exercise(ExerciseBase, table=True):
@@ -140,13 +192,21 @@ class Exercise(ExerciseBase, table=True):
         back_populates="exercises", link_model=ExerciseWorkoutRoutineLink
     )
 
+    workouts: list["Workout"] = Relationship(
+        back_populates="exercises", link_model=ExerciseWorkoutLink
+    )
+
     sets: list[Set] = Relationship(back_populates="exercise")
+    planned_sets: list[PlannedSet] = Relationship(back_populates="exercise")
 
 
 class Workout(WorkoutBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     workoutroutine_id: int = Field(foreign_key="workoutroutine.id")
     workoutroutine: "WorkoutRoutine" = Relationship(back_populates="workouts")
+    exercises: list["Exercise"] = Relationship(
+        back_populates="workouts", link_model=ExerciseWorkoutLink
+    )
     sets: list[Set] = Relationship(back_populates="workout")
 
 
@@ -155,4 +215,7 @@ class WorkoutRoutine(WorkoutRoutineBase, table=True):
     workouts: list[Workout] = Relationship(back_populates="workoutroutine")
     exercises: list["Exercise"] = Relationship(
         back_populates="workoutroutines", link_model=ExerciseWorkoutRoutineLink
+    )
+    planned_sets: list[PlannedSet] = Relationship(
+        back_populates="workoutroutine"
     )
