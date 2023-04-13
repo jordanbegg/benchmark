@@ -146,7 +146,7 @@ def test_delete_workout_routine(client: TestClient):
     # TODO Check the planned_sets were deleted
 
     # Check the routine was deleted
-    response = client.get(f"/workout_routine/{created_id}")
+    response = client.get(f"/workout_routines/{created_id}")
     data = response.json()
     assert response.status_code == 404
 

@@ -169,7 +169,7 @@ class WorkoutRoutineUpdate(WorkoutRoutineBase):
 
 class WorkoutCreate(WorkoutBase):
     exercises: list[ExerciseCreateWithSets] = []
-    workoutroutine_id: int | None = None
+    workoutroutine_id: int
 
 
 class WorkoutRead(WorkoutBase):
