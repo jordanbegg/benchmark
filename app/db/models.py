@@ -92,6 +92,10 @@ class SetBase(SQLModel):
     weight: float | None = None
 
 
+class PlannedSetBase(SQLModel):
+    reps: int | None = None
+
+
 class Set(SetBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     exercise_id: int = Field(foreign_key="exercise.id")
@@ -122,18 +126,29 @@ class FullSetRead(SetBase):
     id: int
 
 
-class SetUpdate(SetBase):
+class FullPlannedSetRead(PlannedSetBase):
     exercise_id: int
-    workout_id: int
+    workoutroutine_id: int
+    id: int
 
 
-class PlannedSetRead(SetBase):
+class SetUpdate(SetBase):
+    exercise_id: int | None = None
+    workout_id: int | None = None
+
+
+class PlannedSetUpdate(PlannedSetBase):
+    exercise_id: int | None = None
+    workoutroutine_id: int | None = None
+
+
+class PlannedSetRead(PlannedSetBase):
     exercise_id: int | None = None
 
 
-class PlannedSetCreate(SetBase):
+class PlannedSetCreate(PlannedSetBase):
     exercise_id: int | None = None
-    workout_routine_id: int | None = None
+    workoutroutine_id: int | None = None
 
 
 class SetCreate(SetBase):

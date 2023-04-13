@@ -6,6 +6,7 @@ from app.routers import (
     workout_routines,
     workouts,
     sets,
+    planned_sets,
 )
 
 app = FastAPI()
@@ -15,6 +16,7 @@ app.include_router(musclegroups.router)
 app.include_router(workout_routines.router)
 app.include_router(workouts.router)
 app.include_router(sets.router)
+app.include_router(planned_sets.router)
 
 
 @app.get("/")
