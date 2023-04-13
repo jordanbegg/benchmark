@@ -116,6 +116,17 @@ class SetRead(SetBase):
     exercise_id: int | None = None
 
 
+class FullSetRead(SetBase):
+    exercise_id: int
+    workout_id: int
+    id: int
+
+
+class SetUpdate(SetBase):
+    exercise_id: int
+    workout_id: int
+
+
 class PlannedSetRead(SetBase):
     exercise_id: int | None = None
 
