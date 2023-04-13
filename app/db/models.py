@@ -159,8 +159,7 @@ class WorkoutRoutineRead(WorkoutRoutineBase):
 
 class WorkoutRoutinesRead(WorkoutRoutineBase):
     id: int
-    exercises: list[ExerciseReadWithPlannedSets] = []
-    workouts: list["WorkoutsReadWithoutSets"]
+    exercises: list[ExerciseRead] = []
 
 
 class WorkoutRoutineUpdate(WorkoutRoutineBase):
