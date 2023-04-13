@@ -9,6 +9,7 @@ from app.db.models import (
     WorkoutUpdate,
     Exercise,
     Set,
+    WorkoutRoutine,
 )
 from dependencies import get_session
 
@@ -41,11 +42,28 @@ def create_workout(
     workout_db = Workout(
         workoutroutine_id=workout.workoutroutine_id, date=workout.date
     )
+    if not (
+        workout_routine_db := session.get(
+            WorkoutRoutine, workout.workoutroutine_id
+        )
+    ):
+        raise HTTPException(
+            status_code=404,
+            detail=f"Workout Routine with id {workout.workoutroutine_id}\
+                not found",
+        )
+    routine_exercises = workout_routine_db.exercises
     for exercise in workout.exercises:
         if not (exercise_db := session.get(Exercise, exercise.id)):
             raise HTTPException(
                 status_code=404,
                 detail=f"Exercise with id {exercise.id} not found",
+            )
+        if exercise_db not in routine_exercises:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Exercise with id {exercise.id} not found in\
+                      routine with id {workout.workoutroutine_id}",
             )
         for workout_set in exercise.sets:
             set_db = Set(
@@ -101,7 +119,7 @@ def delete_workout(
 
 
 @router.patch("/{workout_id}", response_model=WorkoutRead)
-def update_workout_(
+def update_workout(
     *,
     session: Session = Depends(get_session),
     workout_id: int,
@@ -114,15 +132,38 @@ def update_workout_(
             detail=f"Workout with id {workout_id} not found",
         )
 
+    if not workout.workoutroutine_id:
+        workout.workoutroutine_id = workout_db.workoutroutine_id
+
     workout_data = workout.dict(exclude_unset=True)
     for key, value in workout_data.items():
         if key == "exercises":
             workout_db.exercises = []
+            if not (
+                workout_routine_db := session.get(
+                    WorkoutRoutine, workout.workoutroutine_id
+                )
+            ):
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Workout Routine with id \
+                        {workout.workoutroutine_id} not found",
+                )
+            routine_exercises = session.get(
+                WorkoutRoutine, workout.workoutroutine_id
+            ).exercises
+            routine_exercises = workout_routine_db.exercises
             for exercise in value:
                 if not (exercise_db := session.get(Exercise, exercise["id"])):
                     raise HTTPException(
                         status_code=404,
                         detail=f"Exercise with id {exercise['id']} not found",
+                    )
+                if exercise_db not in routine_exercises:
+                    raise HTTPException(
+                        status_code=404,
+                        detail=f"Exercise with id {exercise['id']} not found in\
+                            routine with id {workout.workoutroutine_id}",
                     )
                 if "sets" in exercise:
                     # Delete all existing planned sets
