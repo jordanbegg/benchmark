@@ -1,23 +1,22 @@
 from fastapi import FastAPI
-from sqlmodel import SQLModel
 
-from app.db.database import engine
-from app.routers import exercises, musclegroups, workout_routines
+from app.routers import (
+    exercises,
+    musclegroups,
+    workout_routines,
+    workouts,
+    sets,
+    planned_sets,
+)
 
 app = FastAPI()
 
 app.include_router(exercises.router)
 app.include_router(musclegroups.router)
 app.include_router(workout_routines.router)
-
-
-@app.on_event("startup")
-def on_startup():
-    create_db_and_tables()
-
-
-def create_db_and_tables():
-    SQLModel.metadata.create_all(engine)
+app.include_router(workouts.router)
+app.include_router(sets.router)
+app.include_router(planned_sets.router)
 
 
 @app.get("/")
