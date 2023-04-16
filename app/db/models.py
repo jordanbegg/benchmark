@@ -92,6 +92,10 @@ class SetBase(SQLModel):
     weight: float | None = None
 
 
+class PlannedSetBase(SQLModel):
+    reps: int | None = None
+
+
 class Set(SetBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     exercise_id: int = Field(foreign_key="exercise.id")
@@ -116,13 +120,35 @@ class SetRead(SetBase):
     exercise_id: int | None = None
 
 
-class PlannedSetRead(SetBase):
+class FullSetRead(SetBase):
+    exercise_id: int
+    workout_id: int
+    id: int
+
+
+class FullPlannedSetRead(PlannedSetBase):
+    exercise_id: int
+    workoutroutine_id: int
+    id: int
+
+
+class SetUpdate(SetBase):
+    exercise_id: int | None = None
+    workout_id: int | None = None
+
+
+class PlannedSetUpdate(PlannedSetBase):
+    exercise_id: int | None = None
+    workoutroutine_id: int | None = None
+
+
+class PlannedSetRead(PlannedSetBase):
     exercise_id: int | None = None
 
 
-class PlannedSetCreate(SetBase):
+class PlannedSetCreate(PlannedSetBase):
     exercise_id: int | None = None
-    workout_routine_id: int | None = None
+    workoutroutine_id: int | None = None
 
 
 class SetCreate(SetBase):
@@ -168,17 +194,29 @@ class WorkoutRoutineUpdate(WorkoutRoutineBase):
 
 
 class WorkoutCreate(WorkoutBase):
-    sets: list[SetCreate] = []
+    exercises: list[ExerciseCreateWithSets] = []
+    workoutroutine_id: int
 
 
-class WorkoutRead(WorkoutRoutineBase):
+class WorkoutRead(WorkoutBase):
     id: int
     exercises: list[ExerciseReadWithSets] = []
+    workoutroutine_id: int | None = None
 
 
-class WorkoutUpdate(WorkoutRoutineBase):
-    name: str | None = None
+class WorkoutsRead(WorkoutBase):
+    id: int
+    exercises: list[ExerciseRead] = []
+    workoutroutine_id: int | None = None
+
+
+class WorkoutsReadWithoutSets(WorkoutBase):
+    id: int
+
+
+class WorkoutUpdate(WorkoutBase):
     exercises: list[ExerciseCreateWithSets] = []
+    workoutroutine_id: int | None = None
 
 
 class Exercise(ExerciseBase, table=True):
