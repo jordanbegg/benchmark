@@ -38,6 +38,14 @@ def create_workout_routine(
     session: Session = Depends(get_session),
     workout_routine: WorkoutRoutineCreate,
 ):
+    if session.exec(
+        select(WorkoutRoutine).where(
+            WorkoutRoutine.name == workout_routine.name
+        )
+    ).first():
+        raise ValueError(
+            f"WorkoutRoutine named {workout_routine.name} already exists!"
+        )
     workout_routine_db = WorkoutRoutine(name=workout_routine.name)
     for exercise in workout_routine.exercises:
         if not (exercise_db := session.get(Exercise, exercise.id)):
@@ -140,6 +148,18 @@ def update_workout_routine(
                         )
                         session.add(set_db)
                 workout_routine_db.exercises.append(exercise_db)
+        elif key == "name":
+            if session.exec(
+                select(WorkoutRoutine).where(
+                    WorkoutRoutine.name == value,
+                    WorkoutRoutine.id != workout_routine_db.id,
+                )
+            ).first():
+                raise ValueError(
+                    f"WorkoutRoutine with name {value} already exists!"
+                )
+            else:
+                setattr(workout_routine_db, key, value)
         else:
             setattr(workout_routine_db, key, value)
     session.add(workout_routine_db)

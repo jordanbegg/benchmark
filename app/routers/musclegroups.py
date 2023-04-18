@@ -62,6 +62,18 @@ def update_musclegroup(
         raise HTTPException(status_code=404, detail="MuscleGroup not found")
     musclegroup_data = musclegroup.dict(exclude_unset=True)
     for key, value in musclegroup_data.items():
+        if key == "name":
+            if session.exec(
+                select(MuscleGroup).where(
+                    MuscleGroup.name == value,
+                    MuscleGroup.id != db_musclegroup.id,
+                )
+            ).first():
+                raise ValueError(
+                    f"MuscleGroup with name {value} already exists!"
+                )
+            else:
+                setattr(db_musclegroup, key, value)
         setattr(db_musclegroup, key, value)
     session.add(db_musclegroup)
     session.commit()

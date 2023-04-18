@@ -22,6 +22,10 @@ router = APIRouter(
 def create_exercise(
     *, session: Session = Depends(get_session), exercise: ExerciseCreate
 ):
+    if session.exec(
+        select(Exercise).where(Exercise.name == exercise.name)
+    ).first():
+        raise ValueError(f"Exercise named {exercise.name} already exists!")
     musclegroups = []
     for musclegroup_id in exercise.musclegroup_ids:
         if musclegroup := session.get(MuscleGroup, musclegroup_id):
@@ -72,6 +76,15 @@ def update_exercise(
                 if musclegroup := session.get(MuscleGroup, musclegroup_id):
                     musclegroups.append(musclegroup)
             db_exercise.musclegroups = musclegroups
+        elif key == "name":
+            if session.exec(
+                select(Exercise).where(
+                    Exercise.name == value, Exercise.id != db_exercise.id
+                )
+            ).first():
+                raise ValueError(f"Exercise with name {value} already exists!")
+            else:
+                setattr(db_exercise, key, value)
         else:
             setattr(db_exercise, key, value)
     session.add(db_exercise)
