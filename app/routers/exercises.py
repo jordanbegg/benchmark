@@ -23,14 +23,16 @@ def create_exercise(
     *, session: Session = Depends(get_session), exercise: ExerciseCreate
 ):
     if session.exec(
-        select(Exercise).where(Exercise.name == exercise.name)
+        select(Exercise).where(Exercise.name == exercise.name.lower())
     ).first():
         raise ValueError(f"Exercise named {exercise.name} already exists!")
     musclegroups = []
     for musclegroup_id in exercise.musclegroup_ids:
         if musclegroup := session.get(MuscleGroup, musclegroup_id):
             musclegroups.append(musclegroup)
-    db_exercise = Exercise(name=exercise.name, musclegroups=musclegroups)
+    db_exercise = Exercise(
+        name=exercise.name.lower(), musclegroups=musclegroups
+    )
     session.add(db_exercise)
     session.commit()
     session.refresh(db_exercise)
@@ -79,12 +81,15 @@ def update_exercise(
         elif key == "name":
             if session.exec(
                 select(Exercise).where(
-                    Exercise.name == value, Exercise.id != db_exercise.id
+                    Exercise.name == value.lower(),
+                    Exercise.id != db_exercise.id,
                 )
             ).first():
-                raise ValueError(f"Exercise with name {value} already exists!")
+                raise ValueError(
+                    f"Exercise with name {value.lower()} already exists!"
+                )
             else:
-                setattr(db_exercise, key, value)
+                setattr(db_exercise, key, value.lower())
         else:
             setattr(db_exercise, key, value)
     session.add(db_exercise)

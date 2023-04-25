@@ -40,13 +40,14 @@ def create_workout_routine(
 ):
     if session.exec(
         select(WorkoutRoutine).where(
-            WorkoutRoutine.name == workout_routine.name
+            WorkoutRoutine.name == workout_routine.name.lower()
         )
     ).first():
         raise ValueError(
-            f"WorkoutRoutine named {workout_routine.name} already exists!"
+            f"WorkoutRoutine named {workout_routine.name.lower()} \
+            already exists!"
         )
-    workout_routine_db = WorkoutRoutine(name=workout_routine.name)
+    workout_routine_db = WorkoutRoutine(name=workout_routine.name.lower())
     for exercise in workout_routine.exercises:
         if not (exercise_db := session.get(Exercise, exercise.id)):
             raise HTTPException(
@@ -151,15 +152,15 @@ def update_workout_routine(
         elif key == "name":
             if session.exec(
                 select(WorkoutRoutine).where(
-                    WorkoutRoutine.name == value,
+                    WorkoutRoutine.name == value.lower(),
                     WorkoutRoutine.id != workout_routine_db.id,
                 )
             ).first():
                 raise ValueError(
-                    f"WorkoutRoutine with name {value} already exists!"
+                    f"WorkoutRoutine with name {value.lower()} already exists!"
                 )
             else:
-                setattr(workout_routine_db, key, value)
+                setattr(workout_routine_db, key, value.lower())
         else:
             setattr(workout_routine_db, key, value)
     session.add(workout_routine_db)

@@ -9,7 +9,7 @@ def test_create_muscle_group(client: TestClient):
     data = response.json()
 
     assert response.status_code == 200
-    assert data["name"] == "Chest"
+    assert data["name"] == "chest"
     assert data["id"] is not None
 
 
@@ -21,7 +21,7 @@ def test_read_muscle_group(client: TestClient):
     response = client.get("/musclegroups/1")
     data = response.json()
     assert response.status_code == 200
-    assert data["name"] == "Chest"
+    assert data["name"] == "chest"
     assert data["id"] == 1
     assert data["exercises"] == []
 
@@ -34,7 +34,7 @@ def test_read_muscle_groups(client: TestClient):
     data = response.json()
     assert response.status_code == 200
     assert len(data) == 1
-    assert data[0]["name"] == "Chest"
+    assert data[0]["name"] == "chest"
     assert data[0]["id"] == 1
 
 
@@ -56,8 +56,8 @@ def test_update_muscle_group(client: TestClient):
     response = create_muscle_group(client=client)
     data = response.json()
 
-    response = client.patch("/musclegroups/1", json={"name": "chest"})
+    response = client.patch("/musclegroups/1", json={"name": "triceps"})
     data = response.json()
     assert response.status_code == 200
-    assert data["name"] == "chest"
+    assert data["name"] == "triceps"
     assert data["id"] == 1
