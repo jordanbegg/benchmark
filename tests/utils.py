@@ -19,6 +19,12 @@ SET_PAYLOAD = {
     "workout_id": 1,
 }
 
+PLANNED_SET_PAYLOAD = {
+    "reps": 5,
+    "exercise_id": 1,
+    "workoutroutine_id": 1,
+}
+
 
 def create_muscle_group(
     client: TestClient, payload: dict = MUSCLE_GROUP_PAYLOAD
@@ -56,5 +62,15 @@ def create_set(client: TestClient, payload: dict = SET_PAYLOAD):
     _ = create_workout(client=client, payload=WORKOUT_PAYLOAD)
     return client.post(
         "/sets/",
+        json=payload,
+    )
+
+
+def create_planned_set(
+    client: TestClient, payload: dict = PLANNED_SET_PAYLOAD
+):
+    _ = create_workout(client=client, payload=WORKOUT_PAYLOAD)
+    return client.post(
+        "/planned_sets/",
         json=payload,
     )
