@@ -59,7 +59,9 @@ def test_delete_workout_routine(client: TestClient):
     response = client.delete("/workout_routines/1")
     assert response.status_code == 200
 
-    # TODO Check the planned_sets were deleted
+    # Check the planned_sets were deleted
+    response = client.get("/planned_sets")
+    assert len(response.json()) == 0
 
     # Check the routine was deleted
     response = client.get("/workout_routines/1")
