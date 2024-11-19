@@ -8,6 +8,8 @@ from app.db.models import (
     ExerciseReadWithMuscleGroups,
     ExerciseUpdate,
     MuscleGroup,
+    RoutineExercise,
+    WorkoutExercise
 )
 from dependencies import get_session
 
@@ -105,6 +107,18 @@ def delete_exercise(
     exercise = session.get(Exercise, exercise_id)
     if not exercise:
         raise HTTPException(status_code=404, detail="Exercise not found")
+    # Need to delete the routine exercises first
+    for routine_exercise in exercise.routine_exercises:
+        session.delete(routine_exercise)
+        session.commit()
+        routine_exercises = session.exec(
+                select(RoutineExercise).where(
+                    Exercise.id == exercise_id,
+                )
+            ).all()
+    for workout_exercise in exercise.workout_exercises:
+        session.delete(workout_exercise)
+        session.commit()      
     session.delete(exercise)
     session.commit()
     return {"ok": True}

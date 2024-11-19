@@ -10,6 +10,7 @@ from app.db.models import (
     Exercise,
     Set,
     WorkoutRoutine,
+    WorkoutExercise
 )
 from dependencies import get_session
 
@@ -52,34 +53,31 @@ def create_workout(
             detail=f"Workout Routine with id {workout.workoutroutine_id}\
                 not found",
         )
-    routine_exercises = workout_routine_db.exercises
+    session.add(workout_db)
+    session.commit()
+    session.refresh(workout_db)
     for exercise in workout.exercises:
         if not (exercise_db := session.get(Exercise, exercise.id)):
             raise HTTPException(
                 status_code=404,
                 detail=f"Exercise with id {exercise.id} not found",
             )
-        if exercise_db not in routine_exercises:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Exercise with id {exercise.id} not found in\
-                      routine with id {workout.workoutroutine_id}",
-            )
+        workout_exercise_db = WorkoutExercise(
+            workout=workout_db, exercise=exercise_db
+        )
+        session.add(workout_exercise_db)
+        session.commit()
+        session.refresh(workout_exercise_db)
         for workout_set in exercise.sets:
             set_db = Set(
                 reps=workout_set.reps,
                 weight=workout_set.weight,
-                exercise=exercise_db,
-                workout=workout_db,
+                workout_exercise=workout_exercise_db
             )
             session.add(set_db)
-        workout_db.exercises.append(exercise_db)
     session.add(workout_db)
     session.commit()
     session.refresh(workout_db)
-
-    # Filter for the sake of the response model but don't update db
-    workout_db = filter_sets(workout_db)
     return workout_db
 
 
@@ -99,7 +97,7 @@ def read_workouts(
 )
 def read_workout(*, session: Session = Depends(get_session), workout_id: int):
     if workout := session.get(Workout, workout_id):
-        return filter_sets(workout)
+        return workout
     else:
         raise HTTPException(status_code=404, detail="Workout not found")
 
@@ -111,8 +109,10 @@ def delete_workout(
     workout = session.get(Workout, workout_id)
     if not workout:
         raise HTTPException(status_code=404, detail="Workout not found")
-    for set_db in workout.sets:
-        session.delete(set_db)
+    for workout_exercise in workout.workout_exercises:
+        for set_db in workout_exercise.sets:
+            session.delete(set_db)
+        session.delete(workout_exercise)
     session.delete(workout)
     session.commit()
     return {"ok": True}
