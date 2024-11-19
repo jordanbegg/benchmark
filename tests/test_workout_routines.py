@@ -6,14 +6,14 @@ from .utils import create_workout_routine
 
 def test_create_empty_workout_routine(client: TestClient):
     # Create the workout routine
-    payload = {"name": "Test Routine"}
+    payload = {"name": "test routine"}
     response = client.post(
         "/workout_routines/",
         json=payload,
     )
     data = response.json()
     assert response.status_code == 200
-    assert data["name"] == "Test Routine"
+    assert data["name"] == "test routine"
     assert data["id"] is not None
     assert data["exercises"] == []
 
@@ -22,7 +22,7 @@ def test_create_workout_routine(client: TestClient):
     response = create_workout_routine(client=client)
     data = response.json()
     assert response.status_code == 200
-    assert data["name"] == "Test Routine"
+    assert data["name"] == "test routine"
     assert data["id"] is not None
     assert data["exercises"][0]["id"] == 1
     assert data["exercises"][0]["planned_sets"][0]["reps"] == 4
@@ -36,7 +36,7 @@ def test_read_workout_routine(client: TestClient):
     response = client.get("/workout_routines/1")
     data = response.json()
     assert response.status_code == 200
-    assert data["name"] == "Test Routine"
+    assert data["name"] == "test routine"
     assert data["id"] == 1
     assert data["exercises"][0]["id"] == 1
     assert data["exercises"][0]["planned_sets"][0]["reps"] == 4
@@ -49,7 +49,7 @@ def test_read_workout_routines(client: TestClient):
     data = response.json()
     assert response.status_code == 200
     assert len(data) == 1
-    assert data[0]["name"] == "Test Routine"
+    assert data[0]["name"] == "test routine"
     assert data[0]["id"] == 1
 
 
@@ -73,7 +73,7 @@ def test_update_workout_routine(client: TestClient):
     data = response.json()
 
     payload = {
-        "name": "Test Routine 1",
+        "name": "test routine 1",
         "exercises": [{"id": 1, "planned_sets": [{"reps": 2}]}],
     }
     response = client.patch(
@@ -82,8 +82,8 @@ def test_update_workout_routine(client: TestClient):
     )
     data = response.json()
     assert response.status_code == 200
-    assert data["name"] == "Test Routine 1"
+    assert data["name"] == "test routine 1"
     assert data["id"] == 1
-    assert data["exercises"][0]["name"] == "Bench Press"
+    assert data["exercises"][0]["name"] == "bench press"
     assert data["exercises"][0]["planned_sets"][0]["reps"] == 2
     assert len(data["exercises"][0]["planned_sets"]) == 1

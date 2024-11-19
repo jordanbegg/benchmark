@@ -85,7 +85,7 @@ def test_update_workout(client: TestClient):
     assert response.status_code == 200
     assert data["date"] == "1990-01-02"
     assert data["id"] == 1
-    assert data["exercises"][0]["name"] == "Bench Press"
+    assert data["exercises"][0]["name"] == "bench press"
     assert data["exercises"][0]["sets"][0]["reps"] == 2
     assert data["exercises"][0]["sets"][0]["weight"] == 1000
     assert len(data["exercises"][0]["sets"]) == 1

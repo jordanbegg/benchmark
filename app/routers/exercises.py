@@ -8,6 +8,8 @@ from app.db.models import (
     ExerciseReadWithMuscleGroups,
     ExerciseUpdate,
     MuscleGroup,
+    RoutineExercise,
+    WorkoutExercise
 )
 from dependencies import get_session
 
@@ -22,11 +24,17 @@ router = APIRouter(
 def create_exercise(
     *, session: Session = Depends(get_session), exercise: ExerciseCreate
 ):
+    if session.exec(
+        select(Exercise).where(Exercise.name == exercise.name.lower())
+    ).first():
+        raise ValueError(f"Exercise named {exercise.name} already exists!")
     musclegroups = []
     for musclegroup_id in exercise.musclegroup_ids:
         if musclegroup := session.get(MuscleGroup, musclegroup_id):
             musclegroups.append(musclegroup)
-    db_exercise = Exercise(name=exercise.name, musclegroups=musclegroups)
+    db_exercise = Exercise(
+        name=exercise.name.lower(), musclegroups=musclegroups
+    )
     session.add(db_exercise)
     session.commit()
     session.refresh(db_exercise)
@@ -72,6 +80,18 @@ def update_exercise(
                 if musclegroup := session.get(MuscleGroup, musclegroup_id):
                     musclegroups.append(musclegroup)
             db_exercise.musclegroups = musclegroups
+        elif key == "name":
+            if session.exec(
+                select(Exercise).where(
+                    Exercise.name == value.lower(),
+                    Exercise.id != db_exercise.id,
+                )
+            ).first():
+                raise ValueError(
+                    f"Exercise with name {value.lower()} already exists!"
+                )
+            else:
+                setattr(db_exercise, key, value.lower())
         else:
             setattr(db_exercise, key, value)
     session.add(db_exercise)
@@ -87,6 +107,18 @@ def delete_exercise(
     exercise = session.get(Exercise, exercise_id)
     if not exercise:
         raise HTTPException(status_code=404, detail="Exercise not found")
+    # Need to delete the routine exercises first
+    for routine_exercise in exercise.routine_exercises:
+        session.delete(routine_exercise)
+        session.commit()
+        routine_exercises = session.exec(
+                select(RoutineExercise).where(
+                    Exercise.id == exercise_id,
+                )
+            ).all()
+    for workout_exercise in exercise.workout_exercises:
+        session.delete(workout_exercise)
+        session.commit()      
     session.delete(exercise)
     session.commit()
     return {"ok": True}

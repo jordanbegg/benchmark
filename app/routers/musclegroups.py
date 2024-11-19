@@ -20,7 +20,12 @@ router = APIRouter(
 def create_musclegroup(
     *, session: Session = Depends(get_session), musclegroup: MuscleGroupCreate
 ):
+    if session.exec(
+        select(MuscleGroup).where(MuscleGroup.name == musclegroup.name.lower())
+    ).first():
+        raise ValueError(f"Exercise named {musclegroup.name} already exists!")
     db_musclegroup = MuscleGroup.from_orm(musclegroup)
+    db_musclegroup.name = db_musclegroup.name.lower()
     session.add(db_musclegroup)
     session.commit()
     session.refresh(db_musclegroup)
@@ -62,6 +67,18 @@ def update_musclegroup(
         raise HTTPException(status_code=404, detail="MuscleGroup not found")
     musclegroup_data = musclegroup.dict(exclude_unset=True)
     for key, value in musclegroup_data.items():
+        if key == "name":
+            if session.exec(
+                select(MuscleGroup).where(
+                    MuscleGroup.name == value.lower(),
+                    MuscleGroup.id != db_musclegroup.id,
+                )
+            ).first():
+                raise ValueError(
+                    f"MuscleGroup with name {value.lower()} already exists!"
+                )
+            else:
+                setattr(db_musclegroup, key, value.lower())
         setattr(db_musclegroup, key, value)
     session.add(db_musclegroup)
     session.commit()

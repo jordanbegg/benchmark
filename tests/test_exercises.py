@@ -8,9 +8,9 @@ def test_create_exercise(client: TestClient):
     response = create_exercise(client=client)
     data = response.json()
     assert response.status_code == 200
-    assert data["name"] == "Bench Press"
+    assert data["name"] == "bench press"
     assert data["id"] is not None
-    assert data["musclegroups"][0]["name"] == "Chest"
+    assert data["musclegroups"][0]["name"] == "chest"
 
 
 def test_read_exercise(client: TestClient):
@@ -22,9 +22,9 @@ def test_read_exercise(client: TestClient):
     response = client.get("/exercises/1")
     data = response.json()
     assert response.status_code == 200
-    assert data["name"] == "Bench Press"
+    assert data["name"] == "bench press"
     assert data["id"] == 1
-    assert data["musclegroups"][0]["name"] == "Chest"
+    assert data["musclegroups"][0]["name"] == "chest"
 
 
 def test_read_exercises(client: TestClient):
@@ -36,7 +36,7 @@ def test_read_exercises(client: TestClient):
     data = response.json()
     assert response.status_code == 200
     assert len(data) == 1
-    assert data[0]["name"] == "Bench Press"
+    assert data[0]["name"] == "bench press"
     assert data[0]["id"] == 1
 
 
@@ -57,7 +57,7 @@ def test_update_exercise(client: TestClient):
     data = response.json()
 
     # Create a muscle group
-    response = create_muscle_group(client=client, payload={"name": "Triceps"})
+    response = create_muscle_group(client=client, payload={"name": "triceps"})
 
     response = client.patch(
         "/exercises/1",
@@ -67,4 +67,4 @@ def test_update_exercise(client: TestClient):
     assert response.status_code == 200
     assert data["name"] == "bench press"
     assert data["id"] == 1
-    assert data["musclegroups"][1]["name"] == "Triceps"
+    assert data["musclegroups"][1]["name"] == "triceps"
