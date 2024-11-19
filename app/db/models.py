@@ -41,7 +41,7 @@ class WorkoutExercise(SQLModel, table=True):
     )
 
 class MuscleGroupBase(SQLModel):
-    name: str = Field(index=True, unique=True)
+    name: str = Field(index=True, unique=True, max_length=128)
 
 
 class MuscleGroup(MuscleGroupBase, table=True):
@@ -65,7 +65,7 @@ class MuscleGroupUpdate(SQLModel):
 
 
 class ExerciseBase(SQLModel):
-    name: str | None = Field(default=None, index=True, unique=True)
+    name: str | None = Field(default=None, index=True, unique=True, max_length=128)
 
 
 class ExerciseCreate(ExerciseBase):
@@ -90,7 +90,7 @@ class MuscleGroupReadWithExercises(MuscleGroupRead):
 
 
 class WorkoutRoutineBase(SQLModel):
-    name: str = Field(unique=True, index=True)
+    name: str = Field(unique=True, index=True, max_length=128)
 
 
 class WorkoutBase(SQLModel):

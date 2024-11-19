@@ -8,7 +8,7 @@ from app.db.models import (
     MuscleGroupReadWithExercises,
     MuscleGroupUpdate,
 )
-from dependencies import get_session
+from app.dependencies import get_session
 
 router = APIRouter(
     prefix="/musclegroups",
@@ -39,7 +39,7 @@ def read_musclegroups(
     offset: int = 0,
     limit: int = Query(default=100, lte=100),
 ):
-    return session.exec(select(MuscleGroup).offset(offset).limit(limit)).all()
+    return session.exec(select(MuscleGroup).order_by(MuscleGroup.id).offset(offset).limit(limit)).all()
 
 
 @router.get(
