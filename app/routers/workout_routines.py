@@ -11,7 +11,7 @@ from app.db.models import (
     PlannedSet,
     RoutineExercise,
 )
-from dependencies import get_session
+from app.dependencies import get_session
 
 
 router = APIRouter(
@@ -85,7 +85,7 @@ def read_workout_routines(
     limit: int = Query(default=100, lte=100),
 ):
     return session.exec(
-        select(WorkoutRoutine).offset(offset).limit(limit)
+        select(WorkoutRoutine).order_by(WorkoutRoutine.id).offset(offset).limit(limit)
     ).all()
 
 

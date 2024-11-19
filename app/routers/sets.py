@@ -9,7 +9,7 @@ from app.db.models import (
     Exercise,
     Workout,
 )
-from dependencies import get_session
+from app.dependencies import get_session
 
 router = APIRouter(
     prefix="/sets",
@@ -45,7 +45,7 @@ def read_sets(
     offset: int = 0,
     limit: int = Query(default=100, lte=100),
 ):
-    return session.exec(select(Set).offset(offset).limit(limit)).all()
+    return session.exec(select(Set).order_by(Set.id).offset(offset).limit(limit)).all()
 
 
 @router.get(
