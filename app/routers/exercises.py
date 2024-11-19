@@ -11,7 +11,7 @@ from app.db.models import (
     RoutineExercise,
     WorkoutExercise
 )
-from dependencies import get_session
+from app.dependencies import get_session
 
 
 router = APIRouter(
@@ -48,7 +48,7 @@ def read_exercises(
     offset: int = 0,
     limit: int = Query(default=100, lte=100),
 ):
-    return session.exec(select(Exercise).offset(offset).limit(limit)).all()
+    return session.exec(select(Exercise).order_by(Exercise.id).offset(offset).limit(limit)).all()
 
 
 @router.get("/{exercise_id}", response_model=ExerciseReadWithMuscleGroups)
