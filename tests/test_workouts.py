@@ -1,7 +1,6 @@
 from fastapi.testclient import TestClient
 
-from .fixtures import client_fixture, session_fixture
-from .utils import create_workout, create_workout_routine, create_exercise
+from .utils import create_workout, create_workout_routine
 
 
 def test_create_workout(client: TestClient):
