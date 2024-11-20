@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlmodel import Session, select
+from sqlmodel import Session, select, desc
 
 from app.db.models import (
     Workout,
@@ -90,6 +90,12 @@ def read_workouts(
 ):
     return session.exec(select(Workout).order_by(Workout.id).offset(offset).limit(limit)).all()
 
+@router.get(
+    "/latest",
+    response_model=WorkoutRead,
+)
+def read_latest_workout(*, session: Session = Depends(get_session)):
+    return session.exec(select(Workout).order_by(desc(Workout.date))).first()
 
 @router.get(
     "/{workout_id}",
