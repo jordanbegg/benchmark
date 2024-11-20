@@ -6,7 +6,6 @@ from app.db.models import (
     WorkoutRoutineCreate,
     WorkoutRoutineRead,
     WorkoutRoutinesRead,
-    WorkoutRoutineUpdate,
     Exercise,
     PlannedSet,
     RoutineExercise,
@@ -66,8 +65,7 @@ def create_workout_routine(
         session.refresh(routine_exercise_db)
         for planned_set in exercise.planned_sets:
             set_db = PlannedSet(
-                reps=planned_set.reps,
-                routine_exercise=routine_exercise_db
+                reps=planned_set.reps, routine_exercise=routine_exercise_db
             )
             session.add(set_db)
     session.add(workout_routine_db)
@@ -85,7 +83,10 @@ def read_workout_routines(
     limit: int = Query(default=100, lte=100),
 ):
     return session.exec(
-        select(WorkoutRoutine).order_by(WorkoutRoutine.id).offset(offset).limit(limit)
+        select(WorkoutRoutine)
+        .order_by(WorkoutRoutine.id)
+        .offset(offset)
+        .limit(limit)
     ).all()
 
 

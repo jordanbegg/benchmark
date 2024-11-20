@@ -1,6 +1,5 @@
 from fastapi.testclient import TestClient
 
-from .fixtures import client_fixture, session_fixture
 from .utils import create_muscle_group
 
 
@@ -40,14 +39,14 @@ def test_read_muscle_groups(client: TestClient):
 
 def test_delete_muscle_group(client: TestClient):
     response = create_muscle_group(client=client)
-    data = response.json()
+    _ = response.json()
 
     response = client.delete("/musclegroups/1")
-    data = response.json()
+    _ = response.json()
     assert response.status_code == 200
 
     response = client.get("/musclegroups/1")
-    data = response.json()
+    _ = response.json()
     assert response.status_code == 404
 
 

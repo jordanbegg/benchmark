@@ -8,8 +8,6 @@ from app.db.models import (
     ExerciseReadWithMuscleGroups,
     ExerciseUpdate,
     MuscleGroup,
-    RoutineExercise,
-    WorkoutExercise
 )
 from app.dependencies import get_session
 
@@ -48,7 +46,9 @@ def read_exercises(
     offset: int = 0,
     limit: int = Query(default=100, lte=100),
 ):
-    return session.exec(select(Exercise).order_by(Exercise.id).offset(offset).limit(limit)).all()
+    return session.exec(
+        select(Exercise).order_by(Exercise.id).offset(offset).limit(limit)
+    ).all()
 
 
 @router.get("/{exercise_id}", response_model=ExerciseReadWithMuscleGroups)
@@ -111,14 +111,9 @@ def delete_exercise(
     for routine_exercise in exercise.routine_exercises:
         session.delete(routine_exercise)
         session.commit()
-        routine_exercises = session.exec(
-                select(RoutineExercise).where(
-                    Exercise.id == exercise_id,
-                )
-            ).all()
     for workout_exercise in exercise.workout_exercises:
         session.delete(workout_exercise)
-        session.commit()      
+        session.commit()
     session.delete(exercise)
     session.commit()
     return {"ok": True}

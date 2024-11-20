@@ -32,13 +32,10 @@ class WorkoutExercise(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     workout_id: int = Field(foreign_key="workout.id")
     exercise_id: int = Field(foreign_key="exercise.id")
-    workout: "Workout" = Relationship(
-        back_populates="workout_exercises"
-    )
+    workout: "Workout" = Relationship(back_populates="workout_exercises")
     exercise: "Exercise" = Relationship(back_populates="workout_exercises")
-    sets: list["Set"] = Relationship(
-        back_populates="workout_exercise"
-    )
+    sets: list["Set"] = Relationship(back_populates="workout_exercise")
+
 
 class MuscleGroupBase(SQLModel):
     name: str = Field(index=True, unique=True, max_length=128)
@@ -65,7 +62,9 @@ class MuscleGroupUpdate(SQLModel):
 
 
 class ExerciseBase(SQLModel):
-    name: str | None = Field(default=None, index=True, unique=True, max_length=128)
+    name: str | None = Field(
+        default=None, index=True, unique=True, max_length=128
+    )
 
 
 class ExerciseCreate(ExerciseBase):
@@ -109,9 +108,7 @@ class PlannedSetBase(SQLModel):
 class Set(SetBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     workout_exercise_id: int | None = Field(foreign_key="workoutexercise.id")
-    workout_exercise: WorkoutExercise = Relationship(
-        back_populates="sets"
-    )
+    workout_exercise: WorkoutExercise = Relationship(back_populates="sets")
 
 
 class PlannedSet(SetBase, table=True):
@@ -185,9 +182,11 @@ class RoutineExerciseReadWithPlannedSets(SQLModel):
     exercise: ExerciseRead
     planned_sets: list[SetRead] = []
 
+
 class WorkoutExerciseReadWithSets(SQLModel):
     exercise: ExerciseRead
     sets: list[SetRead] = []
+
 
 class WorkoutRoutineRead(WorkoutRoutineBase):
     id: int
@@ -198,15 +197,18 @@ class WorkoutRoutinesRead(WorkoutRoutineBase):
     id: int
     routine_exercises: list[RoutineExerciseReadWithPlannedSets] = []
 
+
 class WorkoutRead(WorkoutBase):
     id: int
     workoutroutine_id: int
     workout_exercises: list[WorkoutExerciseReadWithSets] = []
 
+
 class WorkoutsRead(WorkoutBase):
     id: int
     workoutroutine_id: int
     workout_exercises: list[WorkoutExerciseReadWithSets] = []
+
 
 class WorkoutRoutineUpdate(WorkoutRoutineBase):
     name: str | None = None

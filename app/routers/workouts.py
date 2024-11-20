@@ -10,7 +10,7 @@ from app.db.models import (
     Exercise,
     Set,
     WorkoutRoutine,
-    WorkoutExercise
+    WorkoutExercise,
 )
 from app.dependencies import get_session
 
@@ -44,7 +44,7 @@ def create_workout(
         workoutroutine_id=workout.workoutroutine_id, date=workout.date
     )
     if not (
-        workout_routine_db := session.get(
+        session.get(
             WorkoutRoutine, workout.workoutroutine_id
         )
     ):
@@ -72,7 +72,7 @@ def create_workout(
             set_db = Set(
                 reps=workout_set.reps,
                 weight=workout_set.weight,
-                workout_exercise=workout_exercise_db
+                workout_exercise=workout_exercise_db,
             )
             session.add(set_db)
     session.add(workout_db)
@@ -88,7 +88,10 @@ def read_workouts(
     offset: int = 0,
     limit: int = Query(default=100, lte=100),
 ):
-    return session.exec(select(Workout).order_by(Workout.id).offset(offset).limit(limit)).all()
+    return session.exec(
+        select(Workout).order_by(Workout.id).offset(offset).limit(limit)
+    ).all()
+
 
 @router.get(
     "/latest",
@@ -96,6 +99,7 @@ def read_workouts(
 )
 def read_latest_workout(*, session: Session = Depends(get_session)):
     return session.exec(select(Workout).order_by(desc(Workout.date))).first()
+
 
 @router.get(
     "/{workout_id}",

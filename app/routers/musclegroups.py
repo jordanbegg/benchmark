@@ -39,7 +39,12 @@ def read_musclegroups(
     offset: int = 0,
     limit: int = Query(default=100, lte=100),
 ):
-    return session.exec(select(MuscleGroup).order_by(MuscleGroup.id).offset(offset).limit(limit)).all()
+    return session.exec(
+        select(MuscleGroup)
+        .order_by(MuscleGroup.id)
+        .offset(offset)
+        .limit(limit)
+    ).all()
 
 
 @router.get(
