@@ -3,6 +3,43 @@ import datetime
 from sqlmodel import Field, SQLModel, Relationship
 
 
+class UserBase(SQLModel):
+    name: str
+    email_address: str
+
+class User(UserBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+
+    weights: list["Weight"] = Relationship(
+        back_populates="user"
+    )
+
+class UserCreate(UserBase):
+    pass
+
+class UserRead(UserBase):
+    id: int
+
+class WeightBase(SQLModel):
+    date: datetime.date = datetime.date.today()
+    weight: float
+
+class Weight(WeightBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+
+    user: User = Relationship(
+        back_populates="weights"
+    )
+    user_id: int = Field(default=None, foreign_key="user.id")
+
+class WeightCreate(WeightBase):
+    user_id: int
+
+class WeightRead(WeightBase):
+    id: int
+    user_id: int
+
+
 class ExerciseMuscleGroup(SQLModel, table=True):
     exercise_musclegroup_id: int | None = Field(default=None, primary_key=True)
     exercise_id: int = Field(foreign_key="exercise.id")
