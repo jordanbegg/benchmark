@@ -45,7 +45,9 @@ def read_sets(
     offset: int = 0,
     limit: int = Query(default=100, lte=100),
 ):
-    return session.exec(select(Set).order_by(Set.id).offset(offset).limit(limit)).all()
+    return session.exec(
+        select(Set).order_by(Set.id).offset(offset).limit(limit)
+    ).all()
 
 
 @router.get(

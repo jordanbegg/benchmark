@@ -1,6 +1,5 @@
 from fastapi.testclient import TestClient
 
-from .fixtures import client_fixture, session_fixture
 from .utils import create_muscle_group, create_exercise
 
 
