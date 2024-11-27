@@ -39,15 +39,17 @@ def create_workout_routine(
     workout_routine: WorkoutRoutineCreate,
 ):
     if session.exec(
-        select(WorkoutRoutine).where(
-            WorkoutRoutine.name == workout_routine.name.lower()
-        )
+        select(WorkoutRoutine)
+        .where(WorkoutRoutine.name == workout_routine.name.lower())
+        .where(WorkoutRoutine.user_id == workout_routine.user_id)
     ).first():
         raise ValueError(
             f"WorkoutRoutine named {workout_routine.name.lower()} \
-            already exists!"
+            already exists for user {workout_routine.user_id}!"
         )
-    workout_routine_db = WorkoutRoutine(name=workout_routine.name.lower())
+    workout_routine_db = WorkoutRoutine(
+        name=workout_routine.name.lower(), user_id=workout_routine.user_id
+    )
     session.add(workout_routine_db)
     session.commit()
     session.refresh(workout_routine_db)
@@ -117,6 +119,8 @@ def delete_workout_routine(
             session.delete(planned_set)
         session.delete(routine_exercise)
     for workout in workout_routine.workouts:
+        for workout_exercise in workout.workout_exercises:
+            session.delete(workout_exercise)
         session.delete(workout)
     session.delete(workout_routine)
     session.commit()

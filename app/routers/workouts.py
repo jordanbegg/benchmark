@@ -6,7 +6,6 @@ from app.db.models import (
     WorkoutCreate,
     WorkoutRead,
     WorkoutsRead,
-    WorkoutUpdate,
     Exercise,
     Set,
     WorkoutRoutine,
@@ -41,7 +40,9 @@ def create_workout(
     workout: WorkoutCreate,
 ):
     workout_db = Workout(
-        workoutroutine_id=workout.workoutroutine_id, date=workout.date
+        workoutroutine_id=workout.workoutroutine_id,
+        date=workout.date,
+        user_id=workout.user_id,
     )
     if not (
         session.get(
@@ -128,73 +129,75 @@ def delete_workout(
     return {"ok": True}
 
 
-@router.patch("/{workout_id}", response_model=WorkoutRead)
-def update_workout(
-    *,
-    session: Session = Depends(get_session),
-    workout_id: int,
-    workout: WorkoutUpdate,
-):
-    workout_db = session.get(Workout, workout_id)
-    if not workout_db:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Workout with id {workout_id} not found",
-        )
+# Need to check that it's working
 
-    if not workout.workoutroutine_id:
-        workout.workoutroutine_id = workout_db.workoutroutine_id
+# @router.patch("/{workout_id}", response_model=WorkoutRead)
+# def update_workout(
+#     *,
+#     session: Session = Depends(get_session),
+#     workout_id: int,
+#     workout: WorkoutUpdate,
+# ):
+#     workout_db = session.get(Workout, workout_id)
+#     if not workout_db:
+#         raise HTTPException(
+#             status_code=404,
+#             detail=f"Workout with id {workout_id} not found",
+#         )
 
-    workout_data = workout.dict(exclude_unset=True)
-    for key, value in workout_data.items():
-        if key == "exercises":
-            workout_db.exercises = []
-            if not (
-                workout_routine_db := session.get(
-                    WorkoutRoutine, workout.workoutroutine_id
-                )
-            ):
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"Workout Routine with id \
-                        {workout.workoutroutine_id} not found",
-                )
-            routine_exercises = session.get(
-                WorkoutRoutine, workout.workoutroutine_id
-            ).exercises
-            routine_exercises = workout_routine_db.exercises
-            for exercise in value:
-                if not (exercise_db := session.get(Exercise, exercise["id"])):
-                    raise HTTPException(
-                        status_code=404,
-                        detail=f"Exercise with id {exercise['id']} not found",
-                    )
-                if exercise_db not in routine_exercises:
-                    raise HTTPException(
-                        status_code=404,
-                        detail=f"Exercise with id {exercise['id']} not found in\
-                            routine with id {workout.workoutroutine_id}",
-                    )
-                if "sets" in exercise:
-                    # Delete all existing planned sets
-                    for exising_set_db in exercise_db.sets:
-                        session.delete(exising_set_db)
-                    # Add new sets
-                    for workout_set in exercise["sets"]:
-                        set_db = Set(
-                            reps=workout_set["reps"],
-                            weight=workout_set["weight"],
-                            exercise=exercise_db,
-                            workout=workout_db,
-                        )
-                        session.add(set_db)
-                workout_db.exercises.append(exercise_db)
-        else:
-            setattr(workout_db, key, value)
-    session.add(workout_db)
-    session.commit()
-    session.refresh(workout_db)
+#     if not workout.workoutroutine_id:
+#         workout.workoutroutine_id = workout_db.workoutroutine_id
 
-    # Filter for the sake of the response model but don't update db
-    workout_db = filter_sets(workout_db)
-    return workout_db
+#     workout_data = workout.dict(exclude_unset=True)
+#     for key, value in workout_data.items():
+#         if key == "exercises":
+#             workout_db.exercises = []
+#             if not (
+#                 workout_routine_db := session.get(
+#                     WorkoutRoutine, workout.workoutroutine_id
+#                 )
+#             ):
+#                 raise HTTPException(
+#                     status_code=404,
+#                     detail=f"Workout Routine with id \
+#                         {workout.workoutroutine_id} not found",
+#                 )
+#             routine_exercises = session.get(
+#                 WorkoutRoutine, workout.workoutroutine_id
+#             ).exercises
+#             routine_exercises = workout_routine_db.exercises
+#             for exercise in value:
+#                 if not (exercise_db := session.get(Exercise, exercise["id"])):
+#                     raise HTTPException(
+#                         status_code=404,
+#                         detail=f"Exercise with id {exercise['id']} not found",
+#                     )
+#                 if exercise_db not in routine_exercises:
+#                     raise HTTPException(
+#                         status_code=404,
+#                         detail=f"Exercise with id {exercise['id']} not found in\
+#                             routine with id {workout.workoutroutine_id}",
+#                     )
+#                 if "sets" in exercise:
+#                     # Delete all existing planned sets
+#                     for exising_set_db in exercise_db.sets:
+#                         session.delete(exising_set_db)
+#                     # Add new sets
+#                     for workout_set in exercise["sets"]:
+#                         set_db = Set(
+#                             reps=workout_set["reps"],
+#                             weight=workout_set["weight"],
+#                             exercise=exercise_db,
+#                             workout=workout_db,
+#                         )
+#                         session.add(set_db)
+#                 workout_db.exercises.append(exercise_db)
+#         else:
+#             setattr(workout_db, key, value)
+#     session.add(workout_db)
+#     session.commit()
+#     session.refresh(workout_db)
+
+#     # Filter for the sake of the response model but don't update db
+#     workout_db = filter_sets(workout_db)
+#     return workout_db
