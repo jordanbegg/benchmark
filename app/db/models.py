@@ -5,36 +5,42 @@ from sqlmodel import Field, SQLModel, Relationship
 
 class UserBase(SQLModel):
     name: str
-    email_address: str
+    email_address: str = Field(index=True, unique=True, max_length=256)
 
 class User(UserBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
-    weights: list["Weight"] = Relationship(
+    weights: list["Weight"] = Relationship(back_populates="user")
+    workouts: list["Workout"] = Relationship(back_populates="user")
+    workout_routines: list["WorkoutRoutine"] = Relationship(
         back_populates="user"
     )
+
 
 class UserCreate(UserBase):
     pass
 
+
 class UserRead(UserBase):
     id: int
+
 
 class WeightBase(SQLModel):
     date: datetime.date = datetime.date.today()
     weight: float
 
+ 
 class Weight(WeightBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
-    user: User = Relationship(
-        back_populates="weights"
-    )
+    user: User = Relationship(back_populates="weights")
     user_id: int = Field(default=None, foreign_key="user.id")
+
 
 class WeightCreate(WeightBase):
     user_id: int
 
+ 
 class WeightRead(WeightBase):
     id: int
     user_id: int
@@ -209,6 +215,7 @@ class ExerciseCreateWithSets(ExerciseBase):
 
 class WorkoutRoutineCreate(WorkoutRoutineBase):
     exercises: list[ExerciseCreateWithPlannedSets] = []
+    user_id: int
 
 
 class ExerciseReadWithSets(ExerciseRead):
@@ -228,17 +235,22 @@ class WorkoutExerciseReadWithSets(SQLModel):
 class WorkoutRoutineRead(WorkoutRoutineBase):
     id: int
     routine_exercises: list[RoutineExerciseReadWithPlannedSets] = []
+    user_id: int
 
 
 class WorkoutRoutinesRead(WorkoutRoutineBase):
     id: int
     routine_exercises: list[RoutineExerciseReadWithPlannedSets] = []
+    user_id: int
+
 
 
 class WorkoutRead(WorkoutBase):
     id: int
     workoutroutine_id: int
     workout_exercises: list[WorkoutExerciseReadWithSets] = []
+    user_id: int
+
 
 
 class WorkoutsRead(WorkoutBase):
@@ -255,6 +267,7 @@ class WorkoutRoutineUpdate(WorkoutRoutineBase):
 class WorkoutCreate(WorkoutBase):
     workoutroutine_id: int
     exercises: list[ExerciseCreateWithSets] = []
+    user_id: int
 
 
 # class WorkoutRead(WorkoutBase):
@@ -300,6 +313,9 @@ class Workout(WorkoutBase, table=True):
         back_populates="workout"
     )
 
+    user_id: int = Field(default=None, foreign_key="user.id")
+    user: User = Relationship(back_populates="workouts")
+
 
 class WorkoutRoutine(WorkoutRoutineBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
@@ -307,3 +323,6 @@ class WorkoutRoutine(WorkoutRoutineBase, table=True):
     routine_exercises: list[RoutineExercise] = Relationship(
         back_populates="workout_routine"
     )
+
+    user_id: int = Field(default=None, foreign_key="user.id")
+    user: User = Relationship(back_populates="workout_routines")

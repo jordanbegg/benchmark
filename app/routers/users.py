@@ -14,9 +14,7 @@ router = APIRouter(
 
 
 @router.post("/", response_model=UserRead)
-def create_user(
-    *, session: Session = Depends(get_session), User: User
-):
+def create_user(*, session: Session = Depends(get_session), User: User):
     db_User = User.from_orm(User)
     session.add(db_User)
     session.commit()
@@ -32,10 +30,7 @@ def read_Users(
     limit: int = Query(default=100, lte=100),
 ):
     return session.exec(
-        select(User)
-        .order_by(User.id)
-        .offset(offset)
-        .limit(limit)
+        select(User).order_by(User.id).offset(offset).limit(limit)
     ).all()
 
 
@@ -43,9 +38,7 @@ def read_Users(
     "/{user_id}",
     response_model=UserRead,
 )
-def read_user(
-    *, session: Session = Depends(get_session), user_id: int
-):
+def read_user(*, session: Session = Depends(get_session), user_id: int):
     if user := session.get(User, user_id):
         return user
     else:
@@ -84,12 +77,22 @@ def read_user(
 
 
 @router.delete("/{user_id}")
-def delete_user(
-    *, session: Session = Depends(get_session), user_id: int
-):
+def delete_user(*, session: Session = Depends(get_session), user_id: int):
     user = session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    for weight in user.weights:
+        session.delete(weight)
+    for workout_routine in user.workout_routines:
+        for routine_exercise in workout_routine.routine_exercises:
+            for planned_set in routine_exercise.planned_sets:
+                session.delete(planned_set)
+            session.delete(routine_exercise)
+        for workout in workout_routine.workouts:
+            for workout_exercise in workout.workout_exercises:
+                session.delete(workout_exercise)
+            session.delete(workout)
+        session.delete(workout_routine)
     session.delete(user)
     session.commit()
     return {"ok": True}

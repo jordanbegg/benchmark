@@ -9,13 +9,15 @@ packages = [{include = "app"}]
 [tool.poetry.dependencies]
 python = "^3.10"
 pydantic = "^1.10.2"
-fastapi = "^0.92.0"
 uvicorn = "^0.20.0"
 alembic = "^1.9.4"
 python-dotenv = "^0.21.1"
 sqlmodel = "^0.0.8"
 pre-commit = "^3.1.1"
 pyodbc = "^5.2.0"
+fastapi = "^0.115.5"
+pyjwt = "^2.10.0"
+passlib = "^1.7.4"
 
 
 [tool.poetry.group.dev.dependencies]
