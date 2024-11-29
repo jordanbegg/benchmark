@@ -4,6 +4,7 @@ from sqlmodel import Session, select
 from app.db.models import (
     User,
     UserRead,
+    UserCreate
 )
 from app.dependencies import get_session
 
@@ -14,7 +15,7 @@ router = APIRouter(
 
 
 @router.post("/", response_model=UserRead)
-def create_user(*, session: Session = Depends(get_session), User: User):
+def create_user(*, session: Session = Depends(get_session), User: UserCreate):
     db_User = User.from_orm(User)
     session.add(db_User)
     session.commit()
