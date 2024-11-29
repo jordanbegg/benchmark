@@ -15,16 +15,16 @@ router = APIRouter(
 
 
 @router.post("/", response_model=UserRead)
-def create_user(*, session: Session = Depends(get_session), User: UserCreate):
-    db_User = User.from_orm(User)
-    session.add(db_User)
+def create_user(*, session: Session = Depends(get_session), user: UserCreate):
+    db_user = User.from_orm(user)
+    session.add(db_user)
     session.commit()
-    session.refresh(db_User)
-    return db_User
+    session.refresh(db_user)
+    return db_user
 
 
 @router.get("/", response_model=list[UserRead])
-def read_Users(
+def read_users(
     *,
     session: Session = Depends(get_session),
     offset: int = 0,
