@@ -88,9 +88,13 @@ def read_workouts(
     session: Session = Depends(get_session),
     offset: int = 0,
     limit: int = Query(default=100, lte=100),
+    workoutroutine_id: int | None = None
 ):
+    query = select(Workout)
+    if workoutroutine_id:
+        query = query.where(Workout.workoutroutine_id == workoutroutine_id)
     return session.exec(
-        select(Workout).order_by(Workout.id).offset(offset).limit(limit)
+       query.order_by(Workout.id).offset(offset).limit(limit)
     ).all()
 
 
