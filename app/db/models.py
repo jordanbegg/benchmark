@@ -7,7 +7,6 @@ class UserBase(SQLModel):
     name: str
     email_address: str = Field(index=True, unique=True, max_length=256)
 
-
 class User(UserBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
@@ -30,7 +29,7 @@ class WeightBase(SQLModel):
     date: datetime.date = datetime.date.today()
     weight: float
 
-
+ 
 class Weight(WeightBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
@@ -41,7 +40,7 @@ class Weight(WeightBase, table=True):
 class WeightCreate(WeightBase):
     user_id: int
 
-
+ 
 class WeightRead(WeightBase):
     id: int
     user_id: int
