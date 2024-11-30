@@ -91,6 +91,8 @@ def delete_user(*, session: Session = Depends(get_session), user_id: int):
             session.delete(routine_exercise)
         for workout in workout_routine.workouts:
             for workout_exercise in workout.workout_exercises:
+                for sset in workout_exercise.sets:
+                    session.delete(sset)
                 session.delete(workout_exercise)
             session.delete(workout)
         session.delete(workout_routine)
