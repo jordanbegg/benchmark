@@ -4,12 +4,13 @@ from sqlmodel import Session, select
 from app.db.models import (
     PlannedSet,
     PlannedSetCreate,
-    FullPlannedSetRead,
+    PlannedSetRead,
     PlannedSetUpdate,
     Exercise,
     WorkoutRoutine,
 )
 from app.dependencies import get_session
+from app.auth import require_permission
 
 router = APIRouter(
     prefix="/planned_sets",
@@ -17,7 +18,8 @@ router = APIRouter(
 )
 
 
-@router.post("/", response_model=FullPlannedSetRead)
+@router.post("/", response_model=PlannedSetRead)
+@require_permission("create_all_planned_sets", "create_own_planned_sets")
 def create_planned_set(
     *, session: Session = Depends(get_session), planned_set: PlannedSetCreate
 ):
@@ -39,7 +41,7 @@ def create_planned_set(
     return planned_set_db
 
 
-@router.get("/", response_model=list[FullPlannedSetRead])
+@router.get("/", response_model=list[PlannedSetRead])
 def read_planned_sets(
     *,
     session: Session = Depends(get_session),
@@ -53,11 +55,9 @@ def read_planned_sets(
 
 @router.get(
     "/{planned_set_id}",
-    response_model=FullPlannedSetRead,
+    response_model=PlannedSetRead,
 )
-def read_planned_set(
-    *, session: Session = Depends(get_session), planned_set_id: int
-):
+def read_planned_set(*, session: Session = Depends(get_session), planned_set_id: int):
     if workout_set := session.get(PlannedSet, planned_set_id):
         return workout_set
     else:
@@ -65,9 +65,7 @@ def read_planned_set(
 
 
 @router.delete("/{planned_set_id}")
-def delete_set(
-    *, session: Session = Depends(get_session), planned_set_id: int
-):
+def delete_planned_set(*, session: Session = Depends(get_session), planned_set_id: int):
     planned_set = session.get(PlannedSet, planned_set_id)
     if not planned_set:
         raise HTTPException(status_code=404, detail="PlannedSet not found")
@@ -76,8 +74,8 @@ def delete_set(
     return {"ok": True}
 
 
-@router.patch("/{planned_set_id}", response_model=FullPlannedSetRead)
-def update_set(
+@router.patch("/{planned_set_id}", response_model=PlannedSetRead)
+def update_planned_set(
     *,
     session: Session = Depends(get_session),
     planned_set_id: int,
@@ -93,9 +91,7 @@ def update_set(
                 status_code=404,
                 detail=f"Exercise with id {value} not found",
             )
-        if key == "workoutroutine_id" and not session.get(
-            WorkoutRoutine, value
-        ):
+        if key == "workoutroutine_id" and not session.get(WorkoutRoutine, value):
             raise HTTPException(
                 status_code=404,
                 detail=f"WorkoutRoutine with id {value} not found",

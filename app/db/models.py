@@ -3,33 +3,110 @@ import datetime
 from sqlmodel import Field, SQLModel, Relationship
 
 
+class RolePermissions(SQLModel, table=True):
+    role_permission_id: int | None = Field(default=None, primary_key=True)
+    permission_id: int = Field(foreign_key="permission.id")
+    role_id: int = Field(foreign_key="role.id")
+    permission: "Permission" = Relationship(back_populates="role_permissions")
+    role: "Role" = Relationship(back_populates="role_permissions")
+
+
+class PermissionBase(SQLModel):
+    name: str
+
+
+class PermissionCreate(PermissionBase):
+    pass
+
+
+class PermissionRead(PermissionBase):
+    id: int
+
+
+class Permission(PermissionBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    role_permissions: list["RolePermissions"] = Relationship(
+        back_populates="permission"
+    )
+
+
+class RoleBase(SQLModel):
+    name: str
+
+
+class RoleCreate(RoleBase):
+    name: str
+    permission_ids: list[int] = []
+
+
+class RolePermissionsRead(SQLModel):
+    role: RoleBase
+    permission: PermissionRead
+
+
+class RolePermissionsReadOnlyPermission(SQLModel):
+    permission: PermissionRead
+
+
+class Role(RoleBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    users: list["User"] = Relationship(back_populates="role")
+    role_permissions: list["RolePermissions"] = Relationship(back_populates="role")
+
+
+class RoleRead(RoleBase):
+    id: int
+    role_permissions: list["RolePermissionsRead"] = []
+
+
+class RoleReadMinimal(SQLModel):
+    id: int
+
+
+class RoleReadOnlyPermissions(RoleBase):
+    id: int
+    role_permissions: list[RolePermissionsReadOnlyPermission] = []
+
+
 class UserBase(SQLModel):
     name: str
     email_address: str = Field(index=True, unique=True, max_length=256)
 
+
 class User(UserBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-
+    password_hash: str
     weights: list["Weight"] = Relationship(back_populates="user")
     workouts: list["Workout"] = Relationship(back_populates="user")
-    workout_routines: list["WorkoutRoutine"] = Relationship(
-        back_populates="user"
-    )
+    workout_routines: list["WorkoutRoutine"] = Relationship(back_populates="user")
+    role_id: int | None = Field(foreign_key="role.id")
+    role: Role = Relationship(back_populates="users")
+
+    def has(self, permission: str):
+        if permission in [rp.permission.name for rp in self.role.role_permissions]:
+            return True
+
+
+class UserLogin(SQLModel):
+    email_address: str
+    password: str
 
 
 class UserCreate(UserBase):
-    pass
+    password: str
+    role_id: int | None = None
 
 
 class UserRead(UserBase):
     id: int
+    role: RoleReadMinimal
 
 
 class WeightBase(SQLModel):
     date: datetime.date = datetime.date.today()
     weight: float
 
- 
+
 class Weight(WeightBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
@@ -40,7 +117,7 @@ class Weight(WeightBase, table=True):
 class WeightCreate(WeightBase):
     user_id: int
 
- 
+
 class WeightRead(WeightBase):
     id: int
     user_id: int
@@ -50,25 +127,17 @@ class ExerciseMuscleGroup(SQLModel, table=True):
     exercise_musclegroup_id: int | None = Field(default=None, primary_key=True)
     exercise_id: int = Field(foreign_key="exercise.id")
     musclegroup_id: int = Field(foreign_key="musclegroup.id")
-    exercise: "Exercise" = Relationship(
-        back_populates="exercise_muscle_groups"
-    )
-    muscle_group: "MuscleGroup" = Relationship(
-        back_populates="exercise_muscle_groups"
-    )
+    exercise: "Exercise" = Relationship(back_populates="exercise_muscle_groups")
+    muscle_group: "MuscleGroup" = Relationship(back_populates="exercise_muscle_groups")
 
 
 class RoutineExercise(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     routine_id: int = Field(foreign_key="workoutroutine.id")
     exercise_id: int = Field(foreign_key="exercise.id")
-    workout_routine: "WorkoutRoutine" = Relationship(
-        back_populates="routine_exercises"
-    )
+    workout_routine: "WorkoutRoutine" = Relationship(back_populates="routine_exercises")
     exercise: "Exercise" = Relationship(back_populates="routine_exercises")
-    planned_sets: list["PlannedSet"] = Relationship(
-        back_populates="routine_exercise"
-    )
+    planned_sets: list["PlannedSet"] = Relationship(back_populates="routine_exercise")
 
 
 class WorkoutExercise(SQLModel, table=True):
@@ -105,9 +174,7 @@ class MuscleGroupUpdate(SQLModel):
 
 
 class ExerciseBase(SQLModel):
-    name: str | None = Field(
-        default=None, index=True, unique=True, max_length=128
-    )
+    name: str | None = Field(default=None, index=True, unique=True, max_length=128)
 
 
 class ExerciseCreate(ExerciseBase):
@@ -132,7 +199,7 @@ class MuscleGroupReadWithExercises(MuscleGroupRead):
 
 
 class WorkoutRoutineBase(SQLModel):
-    name: str = Field(unique=True, index=True, max_length=128)
+    name: str = Field(index=True, max_length=128)
 
 
 class WorkoutBase(SQLModel):
@@ -158,25 +225,12 @@ class PlannedSet(SetBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     routine_exercise_id: int | None = Field(foreign_key="routineexercise.id")
     reps: int
-    routine_exercise: RoutineExercise = Relationship(
-        back_populates="planned_sets"
-    )
+    routine_exercise: RoutineExercise = Relationship(back_populates="planned_sets")
 
 
 class SetRead(SetBase):
-    pass
-
-
-class FullSetRead(SetBase):
-    exercise_id: int
-    workout_id: int
     id: int
-
-
-class FullPlannedSetRead(PlannedSetBase):
-    exercise_id: int
-    workoutroutine_id: int
-    id: int
+    workout_exercise_id: int
 
 
 class SetUpdate(SetBase):
@@ -190,7 +244,8 @@ class PlannedSetUpdate(PlannedSetBase):
 
 
 class PlannedSetRead(PlannedSetBase):
-    exercise_id: int | None = None
+    id: int
+    routine_exercise_id: int | None = None
 
 
 class PlannedSetCreate(PlannedSetBase):
@@ -224,12 +279,31 @@ class ExerciseReadWithSets(ExerciseRead):
 
 class RoutineExerciseReadWithPlannedSets(SQLModel):
     exercise: ExerciseRead
-    planned_sets: list[SetRead] = []
+    planned_sets: list[PlannedSetRead] = []
 
 
 class WorkoutExerciseReadWithSets(SQLModel):
     exercise: ExerciseRead
     sets: list[SetRead] = []
+
+
+class ExerciseReadFull(ExerciseBase):
+    musclegroups: list[MuscleGroupRead] = []
+    sets: list[SetRead] = []
+
+
+class WorkoutExerciseBase(SQLModel):
+    workout_id: int
+    exercise_id: int
+
+
+class WorkoutExerciseRead(WorkoutExerciseBase):
+    workout: WorkoutBase
+    sets: list[SetRead]
+
+
+class WorkoutExerciseCreate(WorkoutExerciseBase):
+    pass
 
 
 class WorkoutRoutineRead(WorkoutRoutineBase):
@@ -244,13 +318,11 @@ class WorkoutRoutinesRead(WorkoutRoutineBase):
     user_id: int
 
 
-
 class WorkoutRead(WorkoutBase):
     id: int
     workoutroutine_id: int
     workout_exercises: list[WorkoutExerciseReadWithSets] = []
     user_id: int
-
 
 
 class WorkoutsRead(WorkoutBase):
@@ -294,12 +366,8 @@ class WorkoutUpdate(WorkoutBase):
 class Exercise(ExerciseBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
-    routine_exercises: list["RoutineExercise"] = Relationship(
-        back_populates="exercise"
-    )
-    workout_exercises: list["WorkoutExercise"] = Relationship(
-        back_populates="exercise"
-    )
+    routine_exercises: list["RoutineExercise"] = Relationship(back_populates="exercise")
+    workout_exercises: list["WorkoutExercise"] = Relationship(back_populates="exercise")
     exercise_muscle_groups: list["ExerciseMuscleGroup"] = Relationship(
         back_populates="exercise"
     )
@@ -309,9 +377,7 @@ class Workout(WorkoutBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     workoutroutine_id: int = Field(foreign_key="workoutroutine.id")
     workoutroutine: "WorkoutRoutine" = Relationship(back_populates="workouts")
-    workout_exercises: list[WorkoutExercise] = Relationship(
-        back_populates="workout"
-    )
+    workout_exercises: list[WorkoutExercise] = Relationship(back_populates="workout")
 
     user_id: int = Field(default=None, foreign_key="user.id")
     user: User = Relationship(back_populates="workouts")

@@ -25,10 +25,24 @@ PLANNED_SET_PAYLOAD = {
     "workoutroutine_id": 1,
 }
 
+USER_USER_PAYLOAD = {
+    "name": "User User",
+    "email": "user@email.com",
+    "password": "user",
+    "role_id": 2,
+}
 
-def create_muscle_group(
-    client: TestClient, payload: dict = MUSCLE_GROUP_PAYLOAD
-):
+ADMIN_USER_PAYLOAD = {
+    "name": "Admin User",
+    "email": "admin@email.com",
+    "password": "admin",
+    "role_id": 1,
+}
+
+PERMISSION_PAYLOAD = {"name": "read_musclegroup"}
+
+
+def create_muscle_group(client: TestClient, payload: dict = MUSCLE_GROUP_PAYLOAD):
     return client.post("/musclegroups/", json=payload)
 
 
@@ -40,9 +54,7 @@ def create_exercise(client: TestClient, payload: dict = EXERCISE_PAYLOAD):
     )
 
 
-def create_workout_routine(
-    client: TestClient, payload: dict = WORKOUT_ROUTINE_PAYLOAD
-):
+def create_workout_routine(client: TestClient, payload: dict = WORKOUT_ROUTINE_PAYLOAD):
     _ = create_exercise(client=client, payload=EXERCISE_PAYLOAD)
     return client.post(
         "/workout_routines/",
@@ -66,11 +78,13 @@ def create_set(client: TestClient, payload: dict = SET_PAYLOAD):
     )
 
 
-def create_planned_set(
-    client: TestClient, payload: dict = PLANNED_SET_PAYLOAD
-):
+def create_planned_set(client: TestClient, payload: dict = PLANNED_SET_PAYLOAD):
     _ = create_workout(client=client, payload=WORKOUT_PAYLOAD)
     return client.post(
         "/planned_sets/",
         json=payload,
     )
+
+
+def create_user_user(client: TestClient, payload: dict = PLANNED_SET_PAYLOAD):
+    pass
