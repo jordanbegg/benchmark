@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, select
 
@@ -11,6 +13,7 @@ from app.db.models import (
     RoutineExercise,
 )
 from app.dependencies import get_session
+from app.auth import get_current_user, require_permission
 
 
 router = APIRouter(
@@ -33,11 +36,20 @@ def filter_sets(workout_routine: WorkoutRoutine):
 
 
 @router.post("/", response_model=WorkoutRoutineRead)
+@require_permission("create_all_workout_routines", "create_own_workout_routine")
 def create_workout_routine(
     *,
     session: Session = Depends(get_session),
     workout_routine: WorkoutRoutineCreate,
+    current_user: Annotated[str, Depends(get_current_user)],
 ):
+    if workout_routine.user_id != current_user.id and not current_user.has(
+        "create_all_workout_routines"
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="User does not have permission to create workout routines for another user",
+        )
     if session.exec(
         select(WorkoutRoutine)
         .where(WorkoutRoutine.name == workout_routine.name.lower())
@@ -78,17 +90,25 @@ def create_workout_routine(
 
 
 @router.get("/", response_model=list[WorkoutRoutinesRead])
+@require_permission("read_all_workout_routines", "read_own_workout_routine")
 def read_workout_routines(
     *,
     session: Session = Depends(get_session),
     offset: int = 0,
     limit: int = Query(default=100, lte=100),
+    user_id: int = None,
+    current_user: Annotated[str, Depends(get_current_user)],
 ):
+    if user_id != current_user.id and not current_user.has("read_all_workout_routines"):
+        raise HTTPException(
+            status_code=400,
+            detail="User does not have permission to read workout routines of another user",
+        )
+    query = select(WorkoutRoutine)
+    if user_id:
+        query = query.where(WorkoutRoutine.user_id == user_id)
     return session.exec(
-        select(WorkoutRoutine)
-        .order_by(WorkoutRoutine.id)
-        .offset(offset)
-        .limit(limit)
+        query.order_by(WorkoutRoutine.id).offset(offset).limit(limit)
     ).all()
 
 
@@ -96,23 +116,43 @@ def read_workout_routines(
     "/{workoutroutine_id}",
     response_model=WorkoutRoutineRead,
 )
+@require_permission("read_all_workout_routines", "read_own_workout_routine")
 def read_workout_routine(
-    *, session: Session = Depends(get_session), workoutroutine_id: int
+    *,
+    session: Session = Depends(get_session),
+    workoutroutine_id: int,
+    current_user: Annotated[str, Depends(get_current_user)],
 ):
     if workout_routine := session.get(WorkoutRoutine, workoutroutine_id):
+        if workout_routine.user_id != current_user.id and not current_user.has(
+            "read_all_workout_routines"
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail="User does not have permission to read workout routines of another user",
+            )
         return workout_routine
     else:
         raise HTTPException(status_code=404, detail="WorkoutRoutine not found")
 
 
 @router.delete("/{workout_routine_id}")
+@require_permission("delete_all_workouts", "delete_own_workout")
 def delete_workout_routine(
-    *, session: Session = Depends(get_session), workout_routine_id: int
+    *,
+    session: Session = Depends(get_session),
+    workoutroutine_id: int,
+    current_user: Annotated[str, Depends(get_current_user)],
 ):
-    workout_routine = session.get(WorkoutRoutine, workout_routine_id)
+    workout_routine = session.get(WorkoutRoutine, workoutroutine_id)
     if not workout_routine:
+        raise HTTPException(status_code=404, detail="Workout Routine not found")
+    if workout_routine.user_id != current_user.id and not current_user.has(
+        "delete_all_workout_routines"
+    ):
         raise HTTPException(
-            status_code=404, detail="Workout Routine not found"
+            status_code=400,
+            detail="User does not have permission to delete workout routines of another user",
         )
     for routine_exercise in workout_routine.routine_exercises:
         for planned_set in routine_exercise.planned_sets:

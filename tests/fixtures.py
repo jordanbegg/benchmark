@@ -7,8 +7,8 @@ from app.main import app
 from app.dependencies import get_session
 
 
-@pytest.fixture(name="session")  #
-def session_fixture():  #
+@pytest.fixture(name="session")
+def session_fixture():
     engine = create_engine(
         "sqlite://",
         connect_args={"check_same_thread": False},

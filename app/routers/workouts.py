@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, select, desc
 
@@ -5,13 +7,13 @@ from app.db.models import (
     Workout,
     WorkoutCreate,
     WorkoutRead,
-    WorkoutsRead,
     Exercise,
     Set,
     WorkoutRoutine,
     WorkoutExercise,
 )
 from app.dependencies import get_session
+from app.auth import get_current_user, require_permission
 
 
 router = APIRouter(
@@ -34,21 +36,26 @@ def filter_sets(workout: Workout):
 
 
 @router.post("/", response_model=WorkoutRead)
+@require_permission("create_all_workouts", "create_own_workout")
 def create_workout(
     *,
     session: Session = Depends(get_session),
     workout: WorkoutCreate,
+    current_user: Annotated[str, Depends(get_current_user)],
 ):
+    if workout.user_id != current_user.id and not current_user.has(
+        "create_all_workouts"
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="User does not have permission to crate workouts for another user",
+        )
     workout_db = Workout(
         workoutroutine_id=workout.workoutroutine_id,
         date=workout.date,
         user_id=workout.user_id,
     )
-    if not (
-        session.get(
-            WorkoutRoutine, workout.workoutroutine_id
-        )
-    ):
+    if not (session.get(WorkoutRoutine, workout.workoutroutine_id)):
         raise HTTPException(
             status_code=404,
             detail=f"Workout Routine with id {workout.workoutroutine_id}\
@@ -63,9 +70,7 @@ def create_workout(
                 status_code=404,
                 detail=f"Exercise with id {exercise.id} not found",
             )
-        workout_exercise_db = WorkoutExercise(
-            workout=workout_db, exercise=exercise_db
-        )
+        workout_exercise_db = WorkoutExercise(workout=workout_db, exercise=exercise_db)
         session.add(workout_exercise_db)
         session.commit()
         session.refresh(workout_exercise_db)
@@ -82,19 +87,29 @@ def create_workout(
     return workout_db
 
 
-@router.get("/", response_model=list[WorkoutsRead])
+@router.get("/", response_model=list[WorkoutRead])
+@require_permission("read_all_workouts", "read_own_workout")
 def read_workouts(
     *,
     session: Session = Depends(get_session),
     offset: int = 0,
     limit: int = Query(default=100, lte=100),
-    workoutroutine_id: int | None = None
+    workoutroutine_id: int | None = None,
+    user_id: int | None = None,
+    current_user: Annotated[str, Depends(get_current_user)],
 ):
+    if user_id != current_user.id and not current_user.has("read_all_workouts"):
+        raise HTTPException(
+            status_code=400,
+            detail="User does not have permission to view workouts of another user",
+        )
     query = select(Workout)
     if workoutroutine_id:
         query = query.where(Workout.workoutroutine_id == workoutroutine_id)
+    if user_id:
+        query = query.where(Workout.user_id == user_id)
     return session.exec(
-       query.order_by(Workout.id).offset(offset).limit(limit)
+        query.order_by(desc(Workout.date)).offset(offset).limit(limit)
     ).all()
 
 
@@ -110,20 +125,44 @@ def read_latest_workout(*, session: Session = Depends(get_session)):
     "/{workout_id}",
     response_model=WorkoutRead,
 )
-def read_workout(*, session: Session = Depends(get_session), workout_id: int):
+@require_permission("read_all_workouts", "read_own_workout")
+def read_workout(
+    *,
+    session: Session = Depends(get_session),
+    workout_id: int,
+    current_user: Annotated[str, Depends(get_current_user)],
+):
     if workout := session.get(Workout, workout_id):
+        if workout.user_id != current_user.id and not current_user.has(
+            "read_all_workouts"
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail="User does not have permission to view workouts of another user",
+            )
         return workout
     else:
         raise HTTPException(status_code=404, detail="Workout not found")
 
 
 @router.delete("/{workout_id}")
+@require_permission("delete_all_workouts", "delete_own_workout")
 def delete_workout(
-    *, session: Session = Depends(get_session), workout_id: int
+    *,
+    session: Session = Depends(get_session),
+    workout_id: int,
+    current_user: Annotated[str, Depends(get_current_user)],
 ):
     workout = session.get(Workout, workout_id)
     if not workout:
         raise HTTPException(status_code=404, detail="Workout not found")
+    if workout.user_id != current_user.id and not current_user.has(
+        "delete_all_workouts"
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="User does not have permission to delete workouts of another user",
+        )
     for workout_exercise in workout.workout_exercises:
         for set_db in workout_exercise.sets:
             session.delete(set_db)
