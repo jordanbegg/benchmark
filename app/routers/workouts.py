@@ -101,7 +101,7 @@ def read_workouts(
     if user_id != current_user.id and not current_user.has("read_all_workouts"):
         raise HTTPException(
             status_code=400,
-            detail="User does not have permission to view workouts of another user",
+            detail="User does not have permission to read workouts of another user",
         )
     query = select(Workout)
     if workoutroutine_id:
@@ -117,8 +117,22 @@ def read_workouts(
     "/latest",
     response_model=WorkoutRead,
 )
-def read_latest_workout(*, session: Session = Depends(get_session)):
-    return session.exec(select(Workout).order_by(desc(Workout.date))).first()
+@require_permission("read_all_workouts", "read_own_workout")
+def read_latest_workout(
+    *,
+    session: Session = Depends(get_session),
+    user_id: int | None = None,
+    current_user: Annotated[str, Depends(get_current_user)],
+):
+    if user_id != current_user.id and not current_user.has("read_all_workouts"):
+        raise HTTPException(
+            status_code=400,
+            detail="User does not have permission to read workouts of another user",
+        )
+    query = select(Workout)
+    if user_id:
+        query = query.where(Workout.user_id == user_id)
+    return session.exec(query.order_by(desc(Workout.date))).first()
 
 
 @router.get(
